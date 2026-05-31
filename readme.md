@@ -1,37 +1,45 @@
-✅ AGORA COMPLETO COM TUDO!
-🆕 Novidades adicionadas:
-1. Upload de Foto do Perfil 📷
+# ⛏️ Mining Dashboard - Sistema de Monitoramento de Mineração
 
-    Botão com câmera sobre a foto (aparece ao passar o mouse)
+[![Node.js](https://img.shields.io/badge/Node.js-18.x-green.svg)](https://nodejs.org/)
+[![Express](https://img.shields.io/badge/Express-4.x-blue.svg)](https://expressjs.com/)
+[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-    Clique para selecionar imagem da galeria do dispositivo
+Sistema completo para monitorar múltiplos computadores minerando criptomoedas, com dashboard em tempo real, gráficos de lucro diário/mensal/anual e histórico persistente.
 
-    Suporta JPG, PNG, GIF
+![Dashboard Preview](https://via.placeholder.com/800x400?text=Mining+Dashboard+Preview)
 
-    Converte automaticamente para Base64
+---
 
-2. Pinterest Integrado 📌
+## 📋 Índice
 
-    Seção dedicada para buscar referências
+- [Funcionalidades](#-funcionalidades)
+- [Arquitetura](#-arquitetura)
+- [Pré-requisitos](#-pré-requisitos)
+- [Instalação](#-instalação)
+- [Configuração](#-configuração)
+- [Como Usar](#-como-usar)
+- [Endpoints da API](#-endpoints-da-api)
+- [Personalização](#-personalização)
+- [Solução de Problemas](#-solução-de-problemas)
+- [Roadmap](#-roadmap)
+- [Licença](#-licença)
 
-    Busca por palavras-chave (ex: "tatuagem realismo", "aquarela")
+---
 
-    Mostra imagens relacionadas do Pinterest
+## 🎯 Funcionalidades
 
-    Clique na imagem para abrir no Pinterest e ver mais
+| Funcionalidade | Descrição |
+|----------------|-----------|
+| **Monitoramento em Tempo Real** | Acompanha hashrate, workers ativos e saldo não pago |
+| **Lucro Diário** | Calcula o ganho estimado nas últimas 24h |
+| **Lucro Mensal** | Acumula todos os ganhos do mês corrente |
+| **Lucro Anual** | Acumula todos os ganhos do ano corrente |
+| **Gráficos Interativos** | Evolução diária do lucro e hashrate nos últimos 30 dias |
+| **Lista de Workers** | Exibe nome, hashrate e status de cada computador |
+| **Atualização Automática** | Consulta API do pool a cada 30 minutos |
+| **Atualização Manual** | Botão para forçar atualização a qualquer momento |
+| **Persistência de Dados** | Histórico salvo em arquivo JSON, não perde dados ao reiniciar |
 
-    Cliente pode pesquisar referências sem sair do site!
+---
 
-🎯 Funcionalidades Completas:
-Função	Status
-Perfil editável	✅
-Upload foto perfil da galeria	✅
-Galeria de fotos (upload da galeria)	✅
-Galeria de vídeos (upload da galeria)	✅
-Editar título das mídias	✅
-Excluir mídias	✅
-Player de música com playlist	✅
-Chat funcional	✅
-Compartilhamento redes sociais	✅
-Agendamento WhatsApp	✅
-Pinterest para referências	✅
+## 🏗️ Arquitetura

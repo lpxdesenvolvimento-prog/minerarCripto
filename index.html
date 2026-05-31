@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mining Dashboard - Controle de Mineração</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            color: #fff;
+            padding: 20px;
+        }
+        .container { max-width: 1200px; margin: 0 auto; }
+        
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        h1 {
+            font-size: 28px;
+            background: linear-gradient(135deg, #f6d365 0%, #fda085 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .last-update {
+            background: rgba(255,255,255,0.1);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+        .refresh-btn {
+            background: #f6d365;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 25px;
+            cursor: pointer;
+            font-weight: bold;
+            transition: transform 0.2s;
+        }
+        .refresh-btn:hover { transform: scale(1.05); }
+        
+        /* Cards */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        .card {
+            background: rgba(255,255,255,0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            border: 1px solid rgba(255,255,255,0.1);
+            transition: transform 0.3s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .card-title {
+            font-size: 14px;
+            color: #aaa;
+            margin-bottom: 10px;
+        }
+        .card-value {
+            font-size: 32px;
+            font-weight: bold;
+            background: linear-gradient(135deg, #f6d365, #fda085);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .card-sub {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        /* Workers Table */
+        .workers-section {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        .workers-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        .workers-table th, .workers-table td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+        .workers-table th {
+            color: #f6d365;
+            font-weight: normal;
+        }
+        .status-online {
+            color: #4ade80;
+        }
+        .status-offline {
+            color: #f87171;
+        }
+        
+        /* Chart */
+        .chart-container {
+            background: rgba(255,255,255,0.05);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        canvas { max-height: 300px; width: 100% !important; }
+        
+        @media (max-width: 768px) {
+            .stats-grid { grid-template-columns: repeat(2, 1fr); }
+            .card-value { font-size: 24px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>⛏️ Mining Dashboard</h1>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <span class="last-update" id="lastUpdate">Carregando...</span>
+                <button class="refresh-btn" onclick="refreshData()">⟳ Atualizar</button>
+            </div>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="card">
+                <div class="card-title">💻 Workers Ativos</div>
+                <div class="card-value" id="workersCount">0</div>
+                <div class="card-sub">computadores minerando</div>
+            </div>
+            <div class="card">
+                <div class="card-title">⚡ Hashrate Total</div>
+                <div class="card-value" id="hashrate">0</div>
+                <div class="card-sub">TH/s (TeraHash por segundo)</div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Lucro Hoje</div>
+                <div class="card-value" id="dailyEarning">R$ 0</div>
+                <div class="card-sub">estimado nas últimas 24h</div>
+            </div>
+            <div class="card">
+                <div class="card-title">📊 Lucro Mensal</div>
+                <div class="card-value" id="monthlyEarning">R$ 0</div>
+                <div class="card-sub">acumulado neste mês</div>
+            </div>
+            <div class="card">
+                <div class="card-title">📅 Lucro Anual</div>
+                <div class="card-value" id="yearlyEarning">R$ 0</div>
+                <div class="card-sub">acumulado neste ano</div>
+            </div>
+            <div class="card">
+                <div class="card-title">💰 Saldo Não Pago</div>
+                <div class="card-value" id="unpaidBalance">R$ 0</div>
+                <div class="card-sub">pendente no pool</div>
+            </div>
+        </div>
+        
+        <div class="workers-section">
+            <h3>🖥️ Máquinas Conectadas</h3>
+            <table class="workers-table">
+                <thead>
+                    <tr><th>Nome do Worker</th><th>Hashrate (TH/s)</th><th>Status</th></tr>
+                </thead>
+                <tbody id="workersTable">
+                    <tr><td colspan="3">Carregando workers...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        
+        <div class="chart-container">
+            <h3>📈 Evolução Diária do Lucro (últimos 30 dias)</h3>
+            <canvas id="earningsChart"></canvas>
+        </div>
+        
+        <div class="chart-container">
+            <h3>⚡ Evolução do Hashrate (últimos 30 dias)</h3>
+            <canvas id="hashrateChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        let earningsChart, hashrateChart;
+        
+        async function fetchDashboard() {
+            try {
+                const response = await fetch('/api/dashboard');
+                const data = await response.json();
+                
+                document.getElementById('workersCount').innerHTML = data.workersCount || 0;
+                document.getElementById('hashrate').innerHTML = (data.current?.hashrate || 0).toLocaleString('pt-BR');
+                document.getElementById('dailyEarning').innerHTML = `R$ ${(data.current?.dailyEarning || 0).toFixed(2)}`;
+                document.getElementById('monthlyEarning').innerHTML = `R$ ${data.monthlyTotal.toFixed(2)}`;
+                document.getElementById('yearlyEarning').innerHTML = `R$ ${data.yearlyTotal.toFixed(2)}`;
+                document.getElementById('unpaidBalance').innerHTML = `R$ ${(data.current?.unpaidBalance || 0).toFixed(2)}`;
+                
+                if (data.lastUpdate) {
+                    document.getElementById('lastUpdate').innerHTML = `Última atualização: ${new Date(data.lastUpdate).toLocaleString()}`;
+                }
+                
+                return data;
+            } catch (error) {
+                console.error('Erro ao carregar dashboard:', error);
+                return null;
+            }
+        }
+        
+        async function loadWorkers() {
+            try {
+                const response = await fetch('/api/workers');
+                const data = await response.json();
+                const tbody = document.getElementById('workersTable');
+                
+                if (!data.workers || data.workers.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="3">Nenhum worker conectado</td></tr>';
+                    return;
+                }
+                
+                tbody.innerHTML = data.workers.map(w => `
+                    <tr>
+                        <td>${w.name || 'unknown'}</td>
+                        <td>${(w.hashrate || 0).toLocaleString('pt-BR')}</td>
+                        <td class="${w.status === 'active' ? 'status-online' : 'status-offline'}">
+                            ${w.status === 'active' ? '● Online' : '○ Offline'}
+                        </td>
+                    </tr>
+                `).join('');
+            } catch (error) {
+                console.error('Erro ao carregar workers:', error);
+            }
+        }
+        
+        async function loadHistory() {
+            try {
+                const response = await fetch('/api/history?days=30');
+                const data = await response.json();
+                
+                const dates = data.map(d => d.date.slice(5));
+                const earnings = data.map(d => d.earnings);
+                const hashrates = data.map(d => d.avgHashrate);
+                
+                if (earningsChart) earningsChart.destroy();
+                if (hashrateChart) hashrateChart.destroy();
+                
+                const ctxEarnings = document.getElementById('earningsChart').getContext('2d');
+                earningsChart = new Chart(ctxEarnings, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Lucro Diário (R$)',
+                            data: earnings,
+                            borderColor: '#f6d365',
+                            backgroundColor: 'rgba(246, 211, 101, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+                
+                const ctxHashrate = document.getElementById('hashrateChart').getContext('2d');
+                hashrateChart = new Chart(ctxHashrate, {
+                    type: 'line',
+                    data: {
+                        labels: dates,
+                        datasets: [{
+                            label: 'Hashrate Médio (TH/s)',
+                            data: hashrates,
+                            borderColor: '#fda085',
+                            backgroundColor: 'rgba(253, 160, 133, 0.1)',
+                            fill: true,
+                            tension: 0.4
+                        }]
+                    },
+                    options: { responsive: true, maintainAspectRatio: true }
+                });
+            } catch (error) {
+                console.error('Erro ao carregar histórico:', error);
+            }
+        }
+        
+        async function refreshData() {
+            try {
+                await fetch('/api/refresh', { method: 'POST' });
+                await fetchDashboard();
+                await loadWorkers();
+                await loadHistory();
+            } catch (error) {
+                console.error('Erro ao atualizar:', error);
+            }
+        }
+        
+        async function init() {
+            await fetchDashboard();
+            await loadWorkers();
+            await loadHistory();
+            
+            setInterval(async () => {
+                await fetchDashboard();
+                await loadWorkers();
+            }, 5 * 60 * 1000);
+        }
+        
+        init();
+    </script>
+</body>
+</html>
